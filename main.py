@@ -37,7 +37,7 @@ class KB():
         pPositive = sentence[1]
         pNegative = sentence[2]
 
-        if len(pPositive) + len(pPositive) == 0:
+        if len(pPositive) + len(pNegative) == 0:
             self.deduce["null"].append(index)
 
         self.depend[q].append(index)
@@ -82,6 +82,8 @@ class KB():
                 depend[sub_q].remove(index)
                 # if sub_q cannot be derived from any other sentences, fail q
                 if len(depend[sub_q]) == 0:
+                    if self.message:
+                        print "CORE [INFO]: as a result, '" + sub_q + "' has no valid sentence to be derived"
                     failQ(sub_q)
 
         def failQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
@@ -108,16 +110,21 @@ class KB():
                 depend[sub_q].remove(index)
                 # if sub_q cannot be derived from any other sentences, fail q
                 if len(depend[sub_q]) == 0:
+                    if self.message:
+                        print "CORE [INFO]: as a result, '" + sub_q + "' has no valid sentence to be derived"
                     failQ(sub_q)
 
-        def judgeSentence(sentence, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+        def judgeSentence(index, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if self.message:
+                print "CORE [INFO]: Processing " + str(self.kb[index])
+            sentence = kb[index]
             q = sentence[0]
             pPositive = sentence[1]
             pNegative = sentence[2]
 
             if len(pPositive) + len(pNegative) == 0:
                 concludeQ(q)
-            if pNegative == ["null"]:
+            if pNegative == ["null"] or pPositive == ["null"]:
                 failQ(q)
 
         if self.debug:
@@ -135,11 +142,9 @@ class KB():
             print "CORE [INFO]: Phase 1, workout all possible truth without fitting operators"
 
         while len(queue) != 0:
-            tmp = kb[queue[0]]
+            index = queue[0]
             del queue[0]
-            if self.debug:
-                sys.stderr.write("CORE [DEBUG]: Processing " + str(tmp) + "\n")
-            judgeSentence(tmp)
+            judgeSentence(index)
 
         if self.message:
             print "CORE [INFO]: Phase 2, fit operators to all atoms without dependency"
@@ -154,11 +159,9 @@ class KB():
             print "CORE [INFO]: Phase 3, work out the rest"
 
         while len(queue) != 0:
-            tmp = kb[queue[0]]
+            index = queue[0]
             del queue[0]
-            if self.debug:
-                sys.stderr.write("CORE [DEBUG]: Processing " + str(tmp) + "\n")
-            judgeSentence(tmp)
+            judgeSentence(index)
 
         return c
 
