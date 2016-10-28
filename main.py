@@ -31,6 +31,8 @@ class KB():
         return
 
     def addToKB(self, sentence):
+        if sentence in self.kb:
+            return
         index = len(self.kb)
         self.kb.append(sentence)
         q = sentence[0]
