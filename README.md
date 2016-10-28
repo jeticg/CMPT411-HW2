@@ -150,3 +150,14 @@ test3.txt:
 result:
 
     ['a4', 'a9', '~a0', '~a2', '~a6', '~a3', '~a5', '~a8', 'a7']
+
+### How to use the test_case_generator.py
+
+Use the following command to generate a new test case:
+
+    python test_case_generator.py new_test_case.txt
+
+This will create a new file with the name `new_test_case.txt`. In addition, one
+can also specify the number of atoms and length of the new test case:
+
+    python test_case_generator.py new_test_case.txt LENGTH NUMBER_OF_ATOMS
