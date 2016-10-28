@@ -164,5 +164,6 @@ class KB():
 
 if __name__ == '__main__':
     kb = KB()
-    kb.addToKBFromFile("test2.txt")
+    for i in range(1, len(sys.argv)):
+        kb.addToKBFromFile(sys.argv[i])
     print kb.calculateConclusions()
