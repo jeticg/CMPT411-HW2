@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 class KB():
-    debug = True
+    debug = False
     message = True
 
     def __init__(self):

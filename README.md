@@ -1,6 +1,20 @@
 # CMPT411-HW2
 Aufgaben 2 des CMPT411 im Herbst 2016
 
+### Problem Description
+
+This question involves generalising forward chaining (bottom-up) Horn
+derivations to implement the Fitting Operator, as covered in class.
+
+Assume that a knowledge base KB consists of a set of rules of the form `a <-
+(a1, ..., an)`, where `n`>=0, `a` is an atom, and each `ai` is either of the
+form `p` or `not p`, where `p` is an atom. By maintaining a set of conclusions
+`C`, and adding an atom `p` to `C` when `p` is known to be solved and `not p`
+when `p` is known to be insoluble, the forward-chaining procedure can be
+extended to handle negation as failure. So, now we can add atoms of the form
+`not p` to the set `C` of consequences, where not `p` means that `p` cannot be
+proven.
+
 ### How to Run The Programme
 
 This programme is written in python. Here are some information on the
