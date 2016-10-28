@@ -65,8 +65,17 @@ with.
 In phase two, we fail all atoms that only occured as antecedents of other
 atoms. In the process, do the same elimination for them as phase one.
 
-Now, the rest is simple, repeat the process just like in phase one, and we will
+Now, phase 3 is simple, repeat the process just like in phase one, and we will
 have all the facts.
+
+Phase 4 deals with a particular set of atoms that still cannot be derived after
+the previous phases. Consider the following situation:
+
+    p <- q
+    q <- p
+
+Neither p nor q can be failed nor derived in phase 1-3, so we fail them in
+phase 4, one by one. And then, all atoms that appeared should have a value now.
 
 In the actual code, instead of using a graph, I used 3 dicts and a list.
 

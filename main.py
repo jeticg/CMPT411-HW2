@@ -172,6 +172,16 @@ class KB():
             del queue[0]
             judgeSentence(index)
 
+        if self.message:
+            print "CORE [INFO]: Phase 4, fail the rest of the atoms"
+
+        for index in range(len(kb)):
+            q = kb[index][0]
+            if kb[index][0] not in c and '~' + kb[index][0] not in c:
+                if self.message:
+                    print "CORE [INFO]: '" + q + "' cannot be derived, failing"
+                failQ(kb[index][0])
+
         return c
 
 if __name__ == '__main__':
