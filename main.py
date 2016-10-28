@@ -1,17 +1,21 @@
 import re
+import sys
 from collections import defaultdict
 from copy import deepcopy
 
 
 class KB():
+    debug = True
+
     def __init__(self):
         self.kb = []
         # deduce[q] is the list of sentence index that q can help to deduce
         # depend[q] is the list of sentence index deduces q
         # fail[q] is the list of sentence index that fails if q
-        self.deduce = {"null": []}
-        self.depend = {}
-        self.fail = {}
+        self.deduce = defaultdict(list)
+        self.depend = defaultdict(list)
+        self.fail = defaultdict(list)
+        self.occurance = defaultdict(int)
         return
 
     def addToKBFromFile(self, fileName):
@@ -21,10 +25,9 @@ class KB():
             for i in range(len(tmp)):
                 tmp[i] = tmp[i].rstrip().split()
             del tmp[0]
+            tmp[0] = tmp[0][0]
+            print tmp
             self.addToKB(tmp)
-        self.kb = sorted(self.kb, key=lambda item: len(item[2]))
-        self.kb = sorted(self.kb, key=lambda item: len(item[1]))
-        self.kb = sorted(self.kb, key=lambda item: len(item[0]))
         f.close()
         return
 
@@ -56,35 +59,53 @@ class KB():
         queue = []
 
         def concludeQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: concluding " + q + "\n")
             c.append(q)
 
             # remove q from atoms that depends on q
             for index in deduce[q]:
+                if self.debug:
+                    sys.stderr.write("CORE [DEBUG]: removing '" + q + "' from " + str(kb[index]) + "\n")
                 kb[index][1].remove(q)
                 if len(kb[index][1]) + len(kb[index][2]) == 0:
                     queue.append(index)
 
             # remove sentences that fails if q
             for index in fail[q]:
+                for item in kb[index][2]:
+                    if item != q:
+                        fail[item].remove(index)
                 kb[index][2] = ["null"]
                 sub_q = kb[index][0]
+                if self.debug:
+                    sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
                 depend[sub_q].remove(index)
                 # if sub_q cannot be derived from any other sentences, fail q
                 if len(depend[sub_q]) == 0:
                     failQ(sub_q)
 
         def failQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: failed '" + q + "'\n")
             c.append("~" + q)
             # remove q from atoms that depends on ~q
             for index in fail[q]:
+                if self.debug:
+                    sys.stderr.write("CORE [DEBUG]: removing '" + q + "' from " + str(kb[index]) + "\n")
                 kb[index][2].remove(q)
                 if len(kb[index][1]) + len(kb[index][2]) == 0:
                     queue.append(index)
 
             # remove sentences that fails if ~q
             for index in deduce[q]:
-                kb[index][2] = ["null"]
+                for item in kb[index][1]:
+                    if item != q:
+                        deduce[item].remove(index)
+                kb[index][1] = ["null"]
                 sub_q = kb[index][0]
+                if self.debug:
+                    sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
                 depend[sub_q].remove(index)
                 # if sub_q cannot be derived from any other sentences, fail q
                 if len(depend[sub_q]) == 0:
@@ -101,15 +122,33 @@ class KB():
                 failQ(q)
 
         for index in deduce["null"]:
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: Initialisaion, adding " + str(kb[index]) + " to queue\n")
             queue.append(index)
 
         while len(queue) != 0:
-            tmp = self.kb[queue[0]]
+            tmp = kb[queue[0]]
+            del queue[0]
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: Processing " + str(tmp) + "\n")
+            judgeSentence(tmp)
+
+        for item in set(deduce.keys() + fail.keys()):
+            if item not in depend and item != "null" and "~" + item not in c:
+                if self.debug:
+                    sys.stderr.write("CORE [DEBUG]: Nothing deduces " + item + ", failing\n")
+                failQ(item)
+
+        while len(queue) != 0:
+            tmp = kb[queue[0]]
+            del queue[0]
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: Processing " + str(tmp) + "\n")
             judgeSentence(tmp)
 
         return c
 
 if __name__ == '__main__':
     kb = KB()
-    kb.addToKBFromFile("test1.txt")
+    kb.addToKBFromFile("test2.txt")
     print kb.calculateConclusions()
