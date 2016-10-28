@@ -1,4 +1,5 @@
 import random
+import sys
 
 
 class KBTestCaseGenerator():
@@ -43,5 +44,8 @@ class KBTestCaseGenerator():
         f.close()
         return
 if __name__ == '__main__':
-    g = KBTestCaseGenerator()
-    g.writeToFile("test3.txt")
+    if len(sys.argv) > 2:
+        g = KBTestCaseGenerator(sys.argv[2], sys.argv[3])
+    else:
+        g = KBTestCaseGenerator()
+    g.writeToFile(sys.argv[1])
