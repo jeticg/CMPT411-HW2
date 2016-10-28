@@ -5,7 +5,8 @@ from copy import deepcopy
 
 
 class KB():
-    debug = True
+    debug = False
+    message = True
 
     def __init__(self):
         self.kb = []
@@ -15,7 +16,6 @@ class KB():
         self.deduce = defaultdict(list)
         self.depend = defaultdict(list)
         self.fail = defaultdict(list)
-        self.occurance = defaultdict(int)
         return
 
     def addToKBFromFile(self, fileName):
@@ -26,7 +26,6 @@ class KB():
                 tmp[i] = tmp[i].rstrip().split()
             del tmp[0]
             tmp[0] = tmp[0][0]
-            print tmp
             self.addToKB(tmp)
         f.close()
         return
@@ -59,8 +58,8 @@ class KB():
         queue = []
 
         def concludeQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
-            if self.debug:
-                sys.stderr.write("CORE [DEBUG]: concluding " + q + "\n")
+            if self.message:
+                print "CORE [INFO]: conclude '" + q + "'"
             c.append(q)
 
             # remove q from atoms that depends on q
@@ -86,8 +85,8 @@ class KB():
                     failQ(sub_q)
 
         def failQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
-            if self.debug:
-                sys.stderr.write("CORE [DEBUG]: failed '" + q + "'\n")
+            if self.message:
+                print "CORE [INFO]: fail '" + q + "'"
             c.append("~" + q)
             # remove q from atoms that depends on ~q
             for index in fail[q]:
@@ -121,10 +120,19 @@ class KB():
             if pNegative == ["null"]:
                 failQ(q)
 
+        if self.debug:
+            sys.stderr.write("CORE [DEBUG]: Beginning Initialisaion\n")
+
         for index in deduce["null"]:
             if self.debug:
-                sys.stderr.write("CORE [DEBUG]: Initialisaion, adding " + str(kb[index]) + " to queue\n")
+                sys.stderr.write("CORE [DEBUG]: adding " + str(kb[index]) + " to queue\n")
             queue.append(index)
+
+        if self.debug:
+            sys.stderr.write("CORE [DEBUG]: Initialisaion Complete\n")
+
+        if self.message:
+            print "CORE [INFO]: Phase 1, workout all possible truth without fitting operators"
 
         while len(queue) != 0:
             tmp = kb[queue[0]]
@@ -133,11 +141,17 @@ class KB():
                 sys.stderr.write("CORE [DEBUG]: Processing " + str(tmp) + "\n")
             judgeSentence(tmp)
 
+        if self.message:
+            print "CORE [INFO]: Phase 2, fit operators to all atoms without dependency"
+
         for item in set(deduce.keys() + fail.keys()):
             if item not in depend and item != "null" and "~" + item not in c:
                 if self.debug:
-                    sys.stderr.write("CORE [DEBUG]: Nothing deduces " + item + ", failing\n")
+                    sys.stderr.write("CORE [DEBUG]: Nothing deduces '" + item + "', failing\n")
                 failQ(item)
+
+        if self.message:
+            print "CORE [INFO]: Phase 3, work out the rest"
 
         while len(queue) != 0:
             tmp = kb[queue[0]]
