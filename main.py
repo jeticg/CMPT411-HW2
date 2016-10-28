@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 class KB():
-    debug = False
+    debug = True
     message = True
 
     def __init__(self):
@@ -74,19 +74,7 @@ class KB():
 
             # remove sentences that fails if q
             for index in fail[q]:
-                for item in kb[index][2]:
-                    if item != q:
-                        fail[item].remove(index)
-                kb[index][2] = ["null"]
-                sub_q = kb[index][0]
-                if self.debug:
-                    sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
-                depend[sub_q].remove(index)
-                # if sub_q cannot be derived from any other sentences, fail q
-                if len(depend[sub_q]) == 0:
-                    if self.message:
-                        print "CORE [INFO]: as a result, '" + sub_q + "' has no valid sentence to be derived"
-                    failQ(sub_q)
+                removeSentence(index)
 
         def failQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
             if self.message:
@@ -102,19 +90,27 @@ class KB():
 
             # remove sentences that fails if ~q
             for index in deduce[q]:
-                for item in kb[index][1]:
-                    if item != q:
-                        deduce[item].remove(index)
-                kb[index][1] = ["null"]
-                sub_q = kb[index][0]
-                if self.debug:
-                    sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
+                removeSentence(index)
+
+        def removeSentence(index, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            sub_q = kb[index][0]
+            if self.debug:
+                sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
+            for item in kb[index][1]:
+                if item != "null":
+                    deduce[item].remove(index)
+            for item in kb[index][2]:
+                if item != "null":
+                    fail[item].remove(index)
+            kb[index][1] = ["null"]
+            kb[index][2] = ["null"]
+            if index in depend[sub_q]:
                 depend[sub_q].remove(index)
-                # if sub_q cannot be derived from any other sentences, fail q
-                if len(depend[sub_q]) == 0:
-                    if self.message:
-                        print "CORE [INFO]: as a result, '" + sub_q + "' has no valid sentence to be derived"
-                    failQ(sub_q)
+            # if sub_q cannot be derived from any other sentences, fail q
+            if len(depend[sub_q]) == 0:
+                if self.message:
+                    print "CORE [INFO]: as a result, '" + sub_q + "' has no valid sentence to be derived"
+                failQ(sub_q)
 
         def judgeSentence(index, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
             if self.message:
@@ -124,9 +120,9 @@ class KB():
             pPositive = sentence[1]
             pNegative = sentence[2]
 
-            if len(pPositive) + len(pNegative) == 0:
+            if len(pPositive) + len(pNegative) == 0 and q not in c and '~' + q not in c:
                 concludeQ(q)
-            if pNegative == ["null"] or pPositive == ["null"]:
+            if pNegative == ["null"] or pPositive == ["null"] and q not in c and '~' + q not in c:
                 failQ(q)
 
         if self.debug:

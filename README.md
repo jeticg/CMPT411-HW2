@@ -1,6 +1,30 @@
 # CMPT411-HW2
 Aufgaben 2 des CMPT411 im Herbst 2016
 
+### How to Run The Programme
+
+This programme is written in python. Here are some information on the
+development environment:
+
+    OS: macOS 10.12.1
+
+    Python Version: Python 2.7.12 (default, Oct 11 2016, 05:24:00)
+    [GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.38)] on darwin
+
+To run the programme, simply pick a test file(for example, test1.txt), and use
+the following command:
+
+    python main.py test1.txt
+
+The output will have two parts: information on reasoning process and final list
+of conclusions. The conclusions will be printed out in the following format:
+
+    ['t', '~r', '~w', '~s', 'q', 'p']
+
+Whereas `~atom` means the negation of the `atom`.
+
+### Logic of The Programme
+
 The logic of this programme is simple. First given the input, we construct a
 graph. Each sentence will have a conclusion and some antecedents, we build an
 edge with positive weight from every positive antecedent to the sentence, and
@@ -53,3 +77,37 @@ technically, is to go through all sentences, and for each atom, eliminate all
 its references. If the number of sentences is `m`, the maximum amount of atoms
 in a sentence is `k`, then the time complexity would be `O(mk)`, which is
 `O(n)` where `n` is the total length of input.
+
+### Test Results
+
+test1.txt:
+
+    [p [q] [r]]
+    [p [s] []]
+    [q [] [s]]
+    [r [] [t]]
+    [t [] []]
+    [s [w] []]
+
+result:
+
+    ['t', '~r', '~w', '~s', 'q', 'p']
+
+test2.txt:
+
+    [a [b] []]
+    [b [] [h]]
+    [c [d e] []]
+    [e [] []]
+    [d [f] [b]]
+    [f [] [g h j]]
+    [f [j] []]
+    [g [] [j]]
+    [h [e] []]
+    [i [] [k]]
+    [k [] [i]]
+
+result:
+
+    ['e', 'h', '~b', '~a', '~j', '~f', '~d', '~c', 'g']
+    
