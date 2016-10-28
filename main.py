@@ -60,9 +60,13 @@ class KB():
         queue = []
 
         def concludeQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if q in c:
+                return
             if self.message:
                 print "CORE [INFO]: conclude '" + q + "'"
             c.append(q)
+            if '~' + q in c:
+                raise RuntimeError("Error, contradiction!")
 
             # remove q from atoms that depends on q
             for index in deduce[q]:
@@ -73,12 +77,17 @@ class KB():
                     queue.append(index)
 
             # remove sentences that fails if q
-            for index in fail[q]:
+            for index in deepcopy(fail[q]):
                 removeSentence(index)
 
         def failQ(q, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if '~' + q in c:
+                return
             if self.message:
                 print "CORE [INFO]: fail '" + q + "'"
+            if q in c:
+                raise RuntimeError("Error, contradiction!")
+
             c.append("~" + q)
             # remove q from atoms that depends on ~q
             for index in fail[q]:
@@ -89,10 +98,12 @@ class KB():
                     queue.append(index)
 
             # remove sentences that fails if ~q
-            for index in deduce[q]:
+            for index in deepcopy(deduce[q]):
                 removeSentence(index)
 
         def removeSentence(index, c=c, queue=queue, deduce=deduce, depend=depend, fail=fail, kb=kb):
+            if kb[index][1] == ["null"] and kb[index][2] == ["null"]:
+                return
             sub_q = kb[index][0]
             if self.debug:
                 sys.stderr.write("CORE [DEBUG]: removing sentence " + str(kb[index]) + " from depend['" + sub_q + "']\n")
@@ -120,9 +131,9 @@ class KB():
             pPositive = sentence[1]
             pNegative = sentence[2]
 
-            if len(pPositive) + len(pNegative) == 0 and q not in c and '~' + q not in c:
+            if len(pPositive) + len(pNegative) == 0:
                 concludeQ(q)
-            if pNegative == ["null"] or pPositive == ["null"] and q not in c and '~' + q not in c:
+            if pNegative == ["null"] or pPositive == ["null"]:
                 failQ(q)
 
         if self.debug:
